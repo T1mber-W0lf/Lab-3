@@ -1,5 +1,6 @@
 const socket = new WebSocket('ws://localhost:4000');
-var pointRadius;
+
+// Функция для обновления графика радара
 function updatePlot(pointRadius, scanAngle, power) {
     const pointTrace = {
         type: 'scatterpolar',
@@ -12,6 +13,7 @@ function updatePlot(pointRadius, scanAngle, power) {
             colorscale: 'Viridis',
         }
     };
+
     const layout = {
         font: {
             size: 15
@@ -29,7 +31,7 @@ function updatePlot(pointRadius, scanAngle, power) {
                 tickwidth: 2,
                 gridcolor: "grey",
                 gridwidth: 2,
-                range: [0, 50],
+                range: [0, 130], // Максимальный радиус
             }
         },
         paper_bgcolor: "white"
@@ -38,25 +40,54 @@ function updatePlot(pointRadius, scanAngle, power) {
     Plotly.newPlot('chart', [pointTrace], layout);
 }
 
+// Обработчик для получения данных с WebSocket
 socket.onmessage = function(event) {
     const data = JSON.parse(event.data);
 
     if (data.echoResponses && data.echoResponses.length > 0) {
-        var pulseDuration = data.pulseDuration;
-        var scanAngle = data.scanAngle;
-        var echoResponses = data.echoResponses;
+        const scanAngle = data.scanAngle;
+        const echoResponses = data.echoResponses;
 
         echoResponses.forEach(response => {
-            var power = response.power;
-            var time = response.time; // Предполагается, что в response есть поле `time`
-            console.log(time);
-            pointRadius = (300000 * time) / 2; // Вычисляем радиус, используя время
-            console.log(pointRadius);
-            if (pointRadius > 50) {
-                pointRadius = 50; // Ограничиваем радиус максимум до 50
-            }
+            const power = response.power;
+            const time = response.time;
+            const pointRadius = (300000 * time) / 2; // Вычисляем радиус
 
             updatePlot(pointRadius, scanAngle, power);
         });
     }
 };
+
+// Функция для отправки параметров через API
+function updateRadarConfig() {
+    const measurementsPerRotation = parseInt(document.getElementById('measurementsPerRotation').value);
+    const rotationSpeed = parseInt(document.getElementById('rotationSpeed').value);
+    const targetSpeed = parseInt(document.getElementById('targetSpeed').value);
+
+    const configData = {
+        measurementsPerRotation: measurementsPerRotation,
+        rotationSpeed: rotationSpeed,
+        targetSpeed: targetSpeed,
+    };
+
+    // Отправляем данные на сервер через API
+    fetch('http://localhost:4000/config', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(configData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Radar parameters updated:', data);
+    })
+    .catch(error => {
+        console.error('Error updating radar parameters:', error);
+    });
+}
+
+// Обработчик для кнопки "Update Parameters"
+document.getElementById('updateParams').addEventListener('click', function() {
+    updateRadarConfig();
+});
