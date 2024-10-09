@@ -3,11 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar Display</title>
+    <title>Radar Control</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script defer src="app.js"></script>
 </head>
 <body>
-    <div id="chart" style="width: 100%; height: 100vh;"></div>
-    <script src="app.js"></script>
+    <h1>Radar Control Panel</h1>
+
+    <div>
+        <label for="measurementsPerRotation">Measurements per Rotation:</label>
+        <input type="number" id="measurementsPerRotation" value="360">
+        
+        <label for="rotationSpeed">Rotation Speed (RPM):</label>
+        <input type="number" id="rotationSpeed" value="60">
+        
+        <label for="targetSpeed">Target Speed (km/h):</label>
+        <input type="number" id="targetSpeed" value="100">
+        
+        <button id="updateParams">Update Parameters</button>
+    </div>
+
+    <div id="chart" style="width:600px;height:600px;"></div>
 </body>
 </html>
